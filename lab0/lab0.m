@@ -1,6 +1,3 @@
-clear
-clc
-
 %% Problem 1
 % (a)
 a = [-5 -4 -3 -2 -1 1 2 3 4 5];
@@ -68,7 +65,7 @@ disp(sum(sum(sample_scalar > 0, ndims(sample_scalar))));
 
 %% Problem 4
 % (a)
-x = -5:0.01:5; 
+x = -6:0.01:6; 
 plot(x,tanh(x));
 
 % (b)
@@ -77,9 +74,22 @@ t = -10:0.01:10;
 plot(t, 1./(1 + exp(-t)));
 
 % (c)
-% tanh and s(t) look very similar
-% TODO: come back to this
+% The tanh(t) and s(t) functions both look very similar, however
+% their ranges are different. tanh goes from -1 to 1 while s(t)
+% goes from 0 to 1
 
 % (d)
-% (exp(2*x) - 1)/(exp(2*x) + 1)
-% TODO: come back to this
+% From matlab docs: tanh(x) = (exp(2*x) - 1)/(exp(2*x) + 1)
+% Knowing this, we can see why the range goes from negative 1 to 1
+% with tanh. The numerator subtracts 1 from the exponentiation,
+% while the denominator adds 1, leading to the range from -1 to 1
+
+% (e) (f)
+figure;
+plot(x, 1./(1 + exp(-x)), 'r');
+text(2,1/(1 + exp(-2)), '\leftarrow s(t) = 1/(1 + e^{-x})');
+hold;
+plot(x, tanh(x), 'b');
+text(-0.1, tanh(-0.1), '\leftarrow tanh(t)');
+xlabel('t');
+legend('s(t) = 1/(1 + e^{-x})', 'tanh(t)', 'Location', 'northwest')
