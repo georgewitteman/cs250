@@ -1,0 +1,34 @@
+\documentclass[12pt]{article}
+\begin{document}
+
+\begin{center}
+\textbf{Modeling, Simulation and Analysis\\CS 250\\Spring 2018}\\
+Homework 1
+\end{center}
+
+\begin{enumerate}
+  \item \textbf{Question 1}
+  \begin{enumerate}
+    \setcounter{enumii}{1}
+  	\item The fraction of the original quantity $Q_0$ of radium-266 that is left after 500 years is 80.74\% and after 5,000 years is 11.77\%. To find this you simply plug $t$ into the formula $Q=Q_0e^{-0.000427869t}$.
+  	\item When 60\% of the radium-266 is left, it is 1193.88 years old. To find this solve the equation $Q=Q_0e^{-0.000427869t}$ for $t$ and then plug in 0.60 for $Q$.
+  \end{enumerate}
+  \item \textbf{Question 2}
+  \begin{enumerate}
+  	\item Trials with different $n$ values:
+			\begin{itemize}
+				\item $n = 1000,\ \pi \approx 3.144$
+				\item $n = 5000,\ \pi \approx 3.164$
+				\item $n = 10000,\ \pi \approx 3.1496$
+				\item $n = 50000,\ \pi \approx 3.13888$
+				\item $n = 100000,\ \pi \approx 3.141$
+				\item $n = 1000000,\ \pi \approx 3.142156$
+				\item $n = 10000000,\ \pi \approx 3.142042$
+			\end{itemize}
+			Based on my testing of $n$ values, I am choosing to use $n = 100000$. This consistently gave $\pi$ of $3.14\ldots$. I'm choosing this as the best estimation because it is able to be computed quickly and gives two significant digits. Although somewhat slow to plot it does plot on my computer in less than 10 seconds.
+			\setcounter{enumii}{3}
+			\item If you changed $r$ to some other positive number besides 1 we would have to change a couple parts of the code. First, the random points that we generate could not just go from 0 to 1, but from 0 to $r$. This means the lines containing \texttt{x = rand(1,numberOfPoints)} have to change to \texttt{y = rand(1,numberOfPoints) * r}. Second, the function that we use to compute our circle would have to take into account our new $r$ value, instead of just using 1. The line \texttt{c = sqrt(1-x.\textasciicircum2) > y;} would get changed to \texttt{c = sqrt(r-x.\textasciicircum2) > y;}.
+  \end{enumerate}
+\end{enumerate}
+
+\end{document}
