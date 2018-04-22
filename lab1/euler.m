@@ -1,12 +1,28 @@
+dt = 0.1;
 simulationLength = 3;
-dt = 0.02;
+numIterations = simulationLength / dt;
 
-gravitationalConstant = -9.81; % m/s^2
-k = 10; % N/m (spring constant)
-m = 0.2; % kg (mass of weight W)
+initDisplacement = 0.3; % m (initial displacement of spring)
+springConstant = 10; % N/m
 unweightedLength = 1; % m (unweighted length of spring)
-initDisplacement = 0.3; % m (init displacement of spring)
-weightDisplacement = -m * gravitationalConstant;
+gravitationalConstant = 9.8; % m/s^2
+mass = 0.2; % kg
+weight = mass * gravitationalConstant;
+weightDisplacement = weight / springConstant;
 
-% initial length of spring
-initLength = unweightedLength + weightDisplacement + initDisplacement;
+length = zeros(1,numIterations);
+length(1) = unweightedLength + weightDisplacement + initDisplacement;
+velocity = zeros(1,numIterations);
+velocity(1) = 0;
+
+for t = 2:numIterations
+  length(t) = length(t-1) + velocity(t-1) * dt;
+  displacement = length(t) - unweightedLength;
+  restoringForce = -springConstant * displacement;
+  acceleration = weight + restoringForce / mass;
+  velocity(t) = velocity(t-1) + acceleration * dt;
+end
+
+plot(1:numIterations,length);
+xticks((1:simulationLength) / dt);
+xticklabels(1:simulationLength);
