@@ -1,35 +1,50 @@
-dt = 0.1;
-simulationLength = 3;
-numIterations = simulationLength / dt;
+% rk4.m
+% Runge-Kutta 4 simulation of undampened weighted spring system (Ch. 3.2)
+% George Witteman
 
-initDisplacement = 0.3; % m (initial displacement of spring)
-springConstant = 10; % N/m
-unweightedLength = 1; % m (unweighted length of spring)
-gravitationalConstant = 9.8; % m/s^2
+simulation_length = 3; % seconds
+deltaT = 0.02; % seconds
+t = 0:deltaT:simulation_length;
+
+init_displacement = 0.3; % meters
+k = 10; % N/m (spring constant)
+unweighted_length = 1; % meter
+g = 9.81; % m/s^2
 mass = 0.2; % kg
-weight = mass * gravitationalConstant;
-weightDisplacement = weight / springConstant;
+weight = mass * g; % (kg * m) / s^2
+weight_displacement = weight / k; % (kg * N) / s^2
 
-dVdt = @(tprev, Vprev) Vprev;
+% Arrays
+P = zeros(1,length(t));
+V = zeros(1,length(t));
 
-length = zeros(1,numIterations);
-length(1) = unweightedLength + weightDisplacement + initDisplacement;
-velocity = zeros(1,numIterations);
-velocity(1) = 0;
+% Initial conditions
+P(1) = unweighted_length + weight_displacement + init_displacement;
+V(1) = 0;
 
-for t = 2:numIterations
-  l1 = dVdt(t-1, velocity(t-1)) * dt;
-  l2 = dVdt(t-1 + 0.5 * dt, velocity(t-1) + 0.5 * l1) * dt;
-  l3 = dVdt(t-1 + 0.5 * dt, velocity(t-1) + 0.5 * l2) * dt;
-  l4 = dVdt(t-1 + dt, velocity(t-1) + l3) * dt;
-  length(t) = length(t-1) + (l1 + 2 * l2 + 2 * l3 + l4) / 6;
+% Differential equations
+dVdt = @(t_n,P_n,V_n) ((-k * (P_n - unweighted_length)) + weight) / mass;
+dPdt = @(t_n,P_n,V_n) V_n;
 
-  displacement = length(t) - unweightedLength;
-  restoringForce = -springConstant * displacement;
-  acceleration = weight + restoringForce / mass;
-  velocity(t) = velocity(t-1) + acceleration * dt;
+% Simulation Loop
+for i = 2:length(t)
+  dp1 = dPdt(t(i-1), P(i-1), V(i-1)) * deltaT;
+  dv1 = dVdt(t(i-1), P(i-1), V(i-1)) * deltaT;
+  dp2 = dPdt(t(i-1) + deltaT/2, P(i-1) + dp1/2, V(i-1) + dv1/2) * deltaT;
+  dv2 = dVdt(t(i-1) + deltaT/2, P(i-1) + dp1/2, V(i-1) + dv1/2) * deltaT;
+  dp3 = dPdt(t(i-1) + deltaT/2, P(i-1) + dp2/2, V(i-1) + dv2/2) * deltaT;
+  dv3 = dVdt(t(i-1) + deltaT/2, P(i-1) + dp2/2, V(i-1) + dv2/2) * deltaT;
+  dp4 = dPdt(t(i-1) + deltaT, P(i-1) + dp3, V(i-1) + dv3) * deltaT;
+  dv4 = dVdt(t(i-1) + deltaT, P(i-1) + dp3, V(i-1) + dv3) * deltaT;
+  
+  P(i) = P(i-1) + (dp1 + 2*dp2 + 2*dp3 + dp4) / 6;
+  V(i) = V(i-1) + (dv1 + 2*dv2 + 2*dv3 + dv4) / 6;
 end
 
-plot(1:numIterations,length);
-xticks((1:simulationLength) / dt);
-xticklabels(1:simulationLength);
+figure;
+plot(t,P);
+hold on;
+title('Runge-Kutta 4 Simulation of Undampened Weighted Spring System');
+xlabel('Time (seconds)');
+ylabel('Length of spring (meters)');
+hold off;
