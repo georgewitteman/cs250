@@ -20,12 +20,19 @@ classdef Block < handle
       obj.Color = color;
     end
     
-    function draw(obj)
-      %DRAW Draw the block on the arena
+    function pgon = getPolyshape(obj)
+      %GETPOLYSHAPE Get the polyshape for this block
+      
       [x1,x2,x3,x4,y1,y2,y3,y4] = ...
         squareVertices(obj.X, obj.Y, Block.Width, Block.Height);
       
       pgon = polyshape([x1 x2 x3 x4], [y1 y2 y3 y4]);
+    end
+    
+    function draw(obj)
+      %DRAW Draw the block on the arena
+      
+      pgon = obj.getPolyshape();
       
       p = plot(pgon);
       p.FaceAlpha = 1;
