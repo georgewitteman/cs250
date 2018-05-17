@@ -11,7 +11,7 @@ t = 0:deltaT:simulation_length;
 
 % Constants
 C_m = 0.1; % capacitance (uF/cm^2)
-V_K = -80; % displacement from the equilibrium potential for K+ (mV)
+V_K = -77; % displacement from the equilibrium potential for K+ (mV)
 V_Na = 50; % displacement from the equilibrium potential for Na+ (mV)
 V_L = -54.4; % displacement from the equilibrium potential for leakage (mV)
 V_initial = -65; % mV
@@ -136,9 +136,9 @@ for i = 1:length(t) - 1
   
   dV4 = dVdt(t(i)+deltaT,...
     V(i)+dV3, n(i)+dn3, m(i)+dm3, h(i)+dh3) * deltaT;
-  dn4 = dndt(t(i)+deltaT, n(i)+dn3) * deltaT;
-  dm4 = dmdt(t(i)+deltaT, m(i)+dm3) * deltaT;
-  dh4 = dhdt(t(i)+deltaT, h(i)+dh3) * deltaT;
+  dn4 = dndt(V(i)+dV3, n(i)+dn3) * deltaT;
+  dm4 = dmdt(V(i)+dV3, m(i)+dm3) * deltaT;
+  dh4 = dhdt(V(i)+dV3, h(i)+dh3) * deltaT;
   
   V(i + 1) = V(i) + (dV1 + 2*dV2 + 2*dV3 + dV4) / 6;
   n(i + 1) = n(i) + (dn1 + 2*dn2 + 2*dn3 + dn4) / 6;

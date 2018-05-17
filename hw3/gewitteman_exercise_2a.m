@@ -16,22 +16,23 @@ V_Na = 50; % displacement from the equilibrium potential for Na+ (mV)
 V_L = -54.4; % displacement from the equilibrium potential for leakage (mV)
 V_initial = -65; % mV
 
-global I_start_t I_length I_value; % Let variables be used in functions
+% global I_start_t I_length I_value; % Let variables be used in functions
 % Function for I is at the bottom of the file
 I_start_t = 0.5; % applied current start time (ms)
 I_length = 0.5; % amount of time to apply current (ms)
 I_value = 15; % applied current (nA)
+I_n = @(t) (t >= I_start_t) * (t < I_start_t + I_length) * I_value;
 
 g_K = 36; % maximum K conductance (mS/cm^2)
 g_Na = 120; % maximum Na conductance (mS/cm^2)
 g_L = 0.3; % maximum leakage conductance (mS/cm^2)
 
-alpha_n = @(V_n) 0.01 * (V_n + 55) / (1 - exp(-(V_n+55)/10)); % ms^-1
-alpha_m = @(V_n) 0.1 * (V_n + 40) / (1 - exp(-(V_n+40)/10)); % ms^-1
-alpha_h = @(V_n) 0.07 * exp(-(V_n+65)/20); % ms^-1
-beta_n = @(V_n) 0.125 * exp(-(V_n+65)/80); % ms^-1
-beta_m = @(V_n) 4 * exp(-(V_n+65)/18); % ms^-1
-beta_h = @(V_n) 1/(exp(-(V_n+35)/10) + 1); % ms^-1
+alpha_n = @(V) 0.01 * (V + 55) / (1 - exp(-(V+55)/10)); % ms^-1
+alpha_m = @(V) 0.1 * (V + 40) / (1 - exp(-(V+40)/10)); % ms^-1
+alpha_h = @(V) 0.07 * exp(-(V+65)/20); % ms^-1
+beta_n = @(V) 0.125 * exp(-(V+65)/80); % ms^-1
+beta_m = @(V) 4 * exp(-(V+65)/18); % ms^-1
+beta_h = @(V) 1/(exp(-(V+35)/10) + 1); % ms^-1
 
 % Initial conditions
 V = zeros(1,length(t)); % action potential (mV)
@@ -55,12 +56,16 @@ for i = 1:length(t) - 1
   if ~Na_gate && ~K_gate && V(i) >= -55
     Na_gate = true;
     Na_gate_opened = true;
+    disp("Sodium opens");
+    disp(t(i));
   end
   
   % Close sodium channel and open potassium channel
   if Na_gate && ~K_gate && V(i) >= 49.3
     Na_gate = false;
     K_gate = true;
+    disp("Close sodium channel and open potassium channel");
+    disp(t(i));
   end
   
   % Differential equations
@@ -96,9 +101,9 @@ for i = 1:length(t) - 1
   
   dV4 = dVdt(t(i)+deltaT,...
     V(i)+dV3, n(i)+dn3, m(i)+dm3, h(i)+dh3) * deltaT;
-  dn4 = dndt(t(i)+deltaT, n(i)+dn3) * deltaT;
-  dm4 = dmdt(t(i)+deltaT, m(i)+dm3) * deltaT;
-  dh4 = dhdt(t(i)+deltaT, h(i)+dh3) * deltaT;
+  dn4 = dndt(V(i)+dV3, n(i)+dn3) * deltaT;
+  dm4 = dmdt(V(i)+dV3, m(i)+dm3) * deltaT;
+  dh4 = dhdt(V(i)+dV3, h(i)+dh3) * deltaT;
   
   V(i + 1) = V(i) + (dV1 + 2*dV2 + 2*dV3 + dV4) / 6;
   n(i + 1) = n(i) + (dn1 + 2*dn2 + 2*dn3 + dn4) / 6;
@@ -108,6 +113,8 @@ for i = 1:length(t) - 1
   % Close potassium channel
   if K_gate && V(i + 1) >= V(i)
     K_gate = false;
+    disp("Close potassium channel");
+    disp(t(i));
   end
 end
 
@@ -129,12 +136,12 @@ legend('n', 'm', 'h');
 hold off;
 
 % Function that computes the applied current in nA at a given time
-function I_n = I(t_n)
-  global I_start_t I_length I_value; % Use global variables
-  if t_n >= I_start_t && t_n < I_start_t + I_length
-    I_n = I_value;
-  else
-    I_n = 0;
-  end
-end
+% function I_n = I(t_n)
+%   global I_start_t I_length I_value; % Use global variables
+%   if t_n >= I_start_t && t_n < I_start_t + I_length
+%     I_n = I_value;
+%   else
+%     I_n = 0;
+%   end
+% end
 
