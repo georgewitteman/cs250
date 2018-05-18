@@ -3,7 +3,7 @@
 % CMPU 250: Modeling, Simulation, and Analysis
 % Final Project
 % Spring, 2018
-simulation_length = 3 * 60; % seconds
+simulation_length = 5 * 60; % seconds
 deltaT = 1/2; % seconds (frames per second)
 t = 0:deltaT:simulation_length;
 

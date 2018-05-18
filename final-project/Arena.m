@@ -10,7 +10,7 @@ classdef Arena < handle
     ColorGreen = [41/255 253/255 47/255];
     ColorBlue = [47/255 214/255 254/255];
     ColorYellow = [255/255 253/255 56/255];
-    NumBlocks = 16;
+    NumBlocks = 48;
   end
   
   properties
@@ -163,6 +163,48 @@ classdef Arena < handle
       outer_boundary_b.FaceAlpha = 1;
     end
     
+    function inQ = isFullyInQuadrant(x,y,w,h,R,quad)
+      %ISFULLYINQUADRANT
+      % Determines if the given rectangle is fully in the quadrant
+      
+      % Get the bounding points of the quadrant
+      if strcmp(quad,'green')
+        x_min = Arena.Width/2;
+        x_max = Arena.Width;
+        y_min = 0;
+        y_max = Arena.Height/2;
+      elseif strcmp(quad,'red')
+        x_min = Arena.Width/2;
+        x_max = Arena.Width;
+        y_min = Arena.Height/2;
+        y_max = Arena.Height;
+      elseif strcmp(quad,'blue')
+        x_min = 0;
+        x_max = Arena.Width/2;
+        y_min = Arena.Height/2;
+        y_max = Arena.Height;
+      elseif strcmp(quad,'yellow')
+        x_min = 0;
+        x_max = Arena.Width/2;
+        y_min = 0;
+        y_max = Arena.Height/2;
+      end
+      
+      % Get the polyshape defined by arguments
+      polyout = getPolyshape(x, y, w, h, R);
+      
+      % Get the polyshape that represents the quadrants bounds
+      bounds = polyshape([x_min x_max x_max x_min],...
+        [y_min y_min y_max y_max]);
+      
+      % Get the boundary vertices of the input rectangle
+      [x,y] = boundary(polyout);
+      
+      % Input rectangle is in the quadrant if all of its vertices are
+      % within the bounds of the quadrant
+      inQ = all(isinterior(bounds, x, y));
+    end
+    
     function inB = inBounds(x, y, width, height, R)
       %INBOUNDS
       % Check if the given rectangle is in the arena bounds delineated by
@@ -178,7 +220,7 @@ classdef Arena < handle
       % Get boundary vertices of the input shape
       [x,y] = boundary(polyout);
       
-      % Input shape is in bounds if all of it's vertices are within the
+      % Input shape is in bounds if all of its vertices are within the
       % bounds
       inB = all(isinterior(bounds, x, y));
     end

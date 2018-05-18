@@ -6,6 +6,10 @@ classdef Robot < handle
     Height = 1 % feet
     Speed  = 1 % feet/second
     RotationSpeed = 35 % degrees/second
+    MinSpinAngle = 90 % degrees
+    MaxSpinAngle = 180 % degrees
+    BackupTime = 1 % second
+    HomeStopTime = 3 * 60 % seconds
   end
   
   properties
@@ -19,6 +23,7 @@ classdef Robot < handle
     StateTime
     BlockCount
     SpinDir
+    RunTime
   end
   
   methods(Static)
@@ -45,6 +50,7 @@ classdef Robot < handle
       obj.State_Backup = false;
       obj.BlockCount = 0;
       obj.SpinDir = -1;
+      obj.RunTime = 0;
     end
     
     function setPosition(obj, x, y)
@@ -121,26 +127,41 @@ classdef Robot < handle
       obj.R = obj.R + deg;
     end
     
+    function stop = endGame(obj, arena)
+      %ENDGAME Determine if the robot should stop moving
+      
+      % The robot should stop driving when it's fully in it's home quadrant
+      % and either it has all it's blocks or has reached HOMESTOPTIME
+      stop = (obj.RunTime >= obj.HomeStopTime || obj.BlockCount >= 4) &&...
+        arena.isFullyInQuadrant(obj.X, obj.Y, obj.Width,...
+        obj.Height, obj.R, obj.Color);
+    end
+    
     function drive(obj, arena, deltaT)
-      if obj.inBounds(arena) && ~arena.robotsHit()
+      %DRIVE Drive the robot forward
+      if obj.endGame(arena)
+        % Do nothing...
+      elseif obj.inBounds(arena) && ~arena.robotsHit()
         obj.moveForward(obj.Speed*deltaT);
       else
         obj.State_Drive = false;
         obj.State_Spin = true;
         obj.State_Backup = true;
-        obj.StateTime = 1;
+        obj.StateTime = obj.BackupTime;
       end
     end
 
     function backup(obj, arena, deltaT)
+      %BACKUP Backup the robot
       if obj.StateTime <= 0 && obj.State_Spin
         % Get out of the backup state
         obj.State_Backup = false;
         % Pick a random direction to spin
         obj.SpinDir = Robot.pickDir();
         % Spin between 90 and 180 degrees
-        obj.StateTime = randMinMax(90/obj.RotationSpeed,...
-          180/obj.RotationSpeed);
+        obj.StateTime = randMinMax(...
+          obj.MinSpinAngle/obj.RotationSpeed,...
+          obj.MaxSpinAngle/obj.RotationSpeed);
       elseif obj.StateTime <= 0
         obj.State_Backup = false;
       else 
@@ -151,6 +172,7 @@ classdef Robot < handle
     end
     
     function spin(obj, ~, deltaT)
+      %SPIN Spin the robot
       if obj.StateTime <= 0
         obj.State_Spin = false;
         obj.State_Drive = true;
@@ -168,6 +190,7 @@ classdef Robot < handle
         obj.spin(arena, deltaT);
       end
       obj.StateTime = obj.StateTime - deltaT;
+      obj.RunTime = obj.RunTime + deltaT;
     end
   end
 end
