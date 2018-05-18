@@ -10,7 +10,9 @@ classdef Arena < handle
     ColorGreen = [41/255 253/255 47/255];
     ColorBlue = [47/255 214/255 254/255];
     ColorYellow = [255/255 253/255 56/255];
-    NumBlocks = 48;
+    NumBlocks = 16;
+    PointsHomeBlock = 3;
+    PointsOtherBlock = -1;
   end
   
   properties
@@ -49,7 +51,6 @@ classdef Arena < handle
       pgon = polyshape([0 Arena.Width Arena.Width 0],...
         [0 0 Arena.Height Arena.Height]);
     end
-    
     
     function drawBackground()
       % DRAWBACKGROUND Draw the background
@@ -230,6 +231,8 @@ classdef Arena < handle
   methods
     function obj = Arena()
       %ARENA Construct an instance of this class
+      %       obj.Robot1 = Robot(2.5, 2.5, 0, 'yellow');
+      %       obj.Robot2 = Robot(7.5, 7.5, 45, 'red');
       obj.Robot1 = Robot(Arena.Width/4, Arena.Height/4,...
         rad2deg(atan(Arena.Height/Arena.Width)), 'yellow');
       obj.Robot2 = Robot(3*(Arena.Width/4), 3*(Arena.Height/4),...
@@ -251,13 +254,13 @@ classdef Arena < handle
         end
         
         if i <= obj.NumBlocks/4
-          color = 'blue';
+          color = 'green';
         elseif i <= obj.NumBlocks/4*2
-          color = 'red';
+          color = 'blue';
         elseif i <= obj.NumBlocks/4*3
           color = 'yellow';
         else
-          color = 'green';
+          color = 'red';
         end
         
         [x,y] = obj.getRandomQuadrantPoint(quad);
@@ -280,6 +283,27 @@ classdef Arena < handle
       else
         available = true;
       end
+    end
+    
+    function TF = insideOuterBoundary(obj,x,y,width,height,R)
+      %INSIDEOUTERBOUNDARY Determine whether the given rectangle is fully
+      %inside the boundary lines (i.e. not on the white line)
+      
+      % Get the input rectangle
+      polyout = getPolyshape(x,y,width,height,R);
+      
+      % Get the bounds of the 
+      tw = obj.TapeWidth;
+      w = obj.Width;
+      h = obj.Height;
+      bounds = polyshape([tw w-tw w-tw tw], [tw tw h-tw h-tw]);
+      
+      % Get the boundary vertices of the input rectangle
+      [x,y] = boundary(polyout);
+      
+      % Input rectangle is in the quadrant if all of its vertices are
+      % within the bounds of the quadrant
+      TF = all(isinterior(bounds, x, y));
     end
     
     function [x,y] = getRandomQuadrantPoint(obj, quad)
@@ -307,7 +331,8 @@ classdef Arena < handle
       
       x = (x_max-x_min).*rand(1,1) + x_min;
       y = (y_max-y_min).*rand(1,1) + y_min;
-      if ~obj.spaceAvailable(x,y, Block.Width, Block.Height, 0)
+      if ~obj.spaceAvailable(x, y, Block.Width, Block.Height, 0) ||...
+          ~obj.insideOuterBoundary(x, y, Block.Width, Block.Height, 0)
         [x,y] = obj.getRandomQuadrantPoint(quad);
       end
     end
@@ -324,12 +349,33 @@ classdef Arena < handle
       hit = overlaps(obj.Robot1.getPoly(), obj.Robot2.getPoly());
     end
     
+    function c = countPoints(obj, robot)
+      %COUNTPOINTS Compute the number of points ROBOT receives
+      c = 0;
+      
+      % Count the uncaught blocks in ROBOTs home quadrant
+      for i = 1:length(obj.Blocks)
+        if obj.inQuadrant(obj.Blocks(i).X, obj.Blocks(i).Y, robot.Color)
+          if strcmp(obj.Blocks(i).Color, robot.Color)
+            c = c + obj.PointsHomeBlock;
+          else
+            c = c + obj.PointsOtherBlock;
+          end
+        end
+      end
+      
+      % Include the caught blocks if ROBOT is in it's home quadrant
+      if obj.inQuadrant(robot.X, robot.Y, robot.Color)
+        c = c + (robot.BlockCount * obj.PointsHomeBlock);
+      end
+    end
+    
     function nextFrame(obj, deltaT)
       obj.Robot1.nextFrame(obj, deltaT);
       obj.Robot2.nextFrame(obj, deltaT);
       
       % Collect blocks into robots
-      for i = 1:length(obj.Blocks) - 1
+      for i = length(obj.Blocks):-1:1
         x = obj.Blocks(i).X;
         y = obj.Blocks(i).Y;
         
@@ -379,7 +425,7 @@ classdef Arena < handle
       
       % Set the aspect ratio of the plot box
       pbaspect([1 1 1]);
-           
+      
       % Turn off axis labels
       axis off;
       
