@@ -15,12 +15,18 @@ classdef Camera < handle
     function ang = getAngleOffCenter(cam_x, cam_y, cam_R, obj_x, obj_y)
       cam_x2 = cos(deg2rad(cam_R)) + cam_x;
       cam_y2 = sin(deg2rad(cam_R)) + cam_y;
+%       
+%       plot([cam_x cam_x2], [cam_y cam_y2]);
+%       plot([cam_x obj_x], [cam_y obj_y]);
       
-      % plot([cam_x cam_x2], [cam_y cam_y2]);
-      % plot([cam_x obj_x], [cam_y obj_y]);
+      % Find the angle between the two lines created by the points
+      ang = rad2deg(atan2(obj_y-cam_y, obj_x-cam_x) - ...
+        atan2(cam_y2-cam_y,cam_x2-cam_x));
       
-      ang = -(atan((cam_y2-cam_y)/(cam_x2-cam_x)) - ...
-        atan((obj_y-cam_y)/(obj_x-cam_x))) * 180/pi;
+      % Correct for error
+      if ang > 180
+        ang = ang - 360;
+      end
     end
   end
   

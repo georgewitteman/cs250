@@ -24,6 +24,7 @@ classdef Robot < handle
     % Camera parameters
     CameraDistance = 5 % feet
     CameraFOV = 135 % degrees
+    CameraOn = true % camera on/off flag
   end
   
   properties
@@ -219,8 +220,8 @@ classdef Robot < handle
         % Do nothing... nowhere else for this robot to go
         
       elseif ~isempty(blocksInFOV) && obj.inBounds(arena) &&...
-          ~arena.robotsHit()
-        % There are blocks in the field of view
+          ~arena.robotsHit() && obj.CameraOn
+        % There are blocks in the field of view (and camera's on)
         
         closestBlock = blocksInFOV(1);
         for i = 1:length(blocksInFOV)
