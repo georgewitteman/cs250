@@ -1,194 +1,215 @@
 classdef Arena < handle
   %ARENA A representation of an arena for the robotics competition
-  
-  properties (Constant)
-    Width  = 10 % feet
-    Height = 10 % feet
-    TapeWidth = 2/12 % inches
-    ColorBackground = [0.5 0.5 0.5];
-    ColorRed = [252/255 13/255 27/255];
-    ColorGreen = [41/255 253/255 47/255];
-    ColorBlue = [47/255 214/255 254/255];
-    ColorYellow = [255/255 253/255 56/255];
-    NumBlocks = 16;
-    PointsHomeBlock = 3;
-    PointsOtherBlock = -1;
-  end
-  
+
   properties
     Robot1
     Robot2
     Blocks
+    Width
+    Height
+    TapeWidth
+    NumBlocks
+    PointsHomeBlock
+    PointsOtherBlock
+    ColorBackground
+    ColorRed
+    ColorGreen
+    ColorBlue
+    ColorYellow
   end
   
-  methods(Static)
-    function quad = currentQuadrant(obj)
-      if Arena.inQuadrant(obj.X, obj.Y, 'green')
+  methods
+    function obj = Arena(simParams)
+      %ARENA Construct an instance of this class
+      obj.Width = simParams.ArenaWidth;
+      obj.Height = simParams.ArenaHeight;
+      obj.TapeWidth = simParams.TapeWidth;
+      obj.NumBlocks = simParams.NumBlocks;
+      obj.PointsHomeBlock = simParams.PointsHomeBlock;
+      obj.PointsOtherBlock = simParams.PointsOtherBlock;
+      obj.ColorBackground = [0.5 0.5 0.5];
+      obj.ColorRed = [252/255 13/255 27/255];
+      obj.ColorGreen = [41/255 253/255 47/255];
+      obj.ColorBlue = [47/255 214/255 254/255];
+      obj.ColorYellow = [255/255 253/255 56/255];
+      
+      w = simParams.ArenaWidth;
+      h = simParams.ArenaHeight;
+      obj.Robot1 = Robot(simParams ,w/4, h/4,...
+        rad2deg(atan(h/w)), 'yellow');
+      obj.Robot2 = Robot(simParams, 3*(w/4), 3*(h/4),...
+        180+rad2deg(atan(h/w)), 'red');
+      obj.Blocks = Block.empty();
+      obj.initializeBlocks();
+    end
+    
+    function quad = currentQuadrant(obj, robot)
+      if obj.inQuadrant(robot.X, robot.Y, 'green')
         quad = 'green';
-      elseif Arena.inQuadrant(obj.X, obj.Y, 'blue')
+      elseif obj.inQuadrant(robot.X, robot.Y, 'blue')
         quad = 'blue';
-      elseif Arena.inQuadrant(obj.X, obj.Y, 'red')
+      elseif obj.inQuadrant(robot.X, robot.Y, 'red')
         quad = 'red';
       else
         quad = 'yellow';
       end
     end
     
-    function inside = inQuadrant(x, y, quadrant)
+    function inside = inQuadrant(obj, x, y, quadrant)
       switch quadrant
         case 'red'
-          inside = x > Arena.Width/2 && y > Arena.Height/2;
+          inside = x > obj.Width/2 && y > obj.Height/2;
         case 'green'
-          inside = x < Arena.Width/2 && y > Arena.Height/2;
+          inside = x < obj.Width/2 && y > obj.Height/2;
         case 'blue'
-          inside = x > Arena.Width/2 && y < Arena.Height/2;
+          inside = x > obj.Width/2 && y < obj.Height/2;
         case 'yellow'
-          inside = x < Arena.Width/2 && y < Arena.Height/2;
+          inside = x < obj.Width/2 && y < obj.Height/2;
       end
     end
     
-    function pgon = getArenaPolyshape()
-      pgon = polyshape([0 Arena.Width Arena.Width 0],...
-        [0 0 Arena.Height Arena.Height]);
+    function pgon = getArenaPolyshape(obj)
+      pgon = polyshape([0 obj.Width obj.Width 0],...
+        [0 0 obj.Height obj.Height]);
     end
     
-    function drawBackground()
+    function drawBackground(obj)
       % DRAWBACKGROUND Draw the background
-      bg = plot(Arena.getArenaPolyshape);
-      bg.FaceColor = Arena.ColorBackground;
+      bg = plot(obj.getArenaPolyshape);
+      bg.FaceColor = obj.ColorBackground;
       bg.LineStyle = 'none';
       bg.FaceAlpha = 1;
     end
     
-    function drawBlueBoundary()
+    function drawBlueBoundary(obj)
       blue1 = plot(...
-        polyshape([0 Arena.Width/2 Arena.Width/2 0],...
-        [Arena.Height/2 Arena.Height/2 ...
-        Arena.Height/2+Arena.TapeWidth Arena.Height/2+Arena.TapeWidth]));
-      blue1.FaceColor = Arena.ColorBlue;
+        polyshape([0 obj.Width/2 obj.Width/2 0],...
+        [obj.Height/2 obj.Height/2 ...
+        obj.Height/2+obj.TapeWidth obj.Height/2+obj.TapeWidth]));
+      blue1.FaceColor = obj.ColorBlue;
       blue1.LineStyle = 'none';
       blue1.FaceAlpha = 1;
       
       blue2 = plot(...
-        polyshape([Arena.Width/2-Arena.TapeWidth ...
-        Arena.Width/2 Arena.Width/2 Arena.Width/2-Arena.TapeWidth],...
-        [Arena.Height Arena.Height Arena.Height/2 Arena.Height/2]));
-      blue2.FaceColor = Arena.ColorBlue;
+        polyshape([obj.Width/2-obj.TapeWidth ...
+        obj.Width/2 obj.Width/2 obj.Width/2-obj.TapeWidth],...
+        [obj.Height obj.Height obj.Height/2 obj.Height/2]));
+      blue2.FaceColor = obj.ColorBlue;
       blue2.LineStyle = 'none';
       blue2.FaceAlpha = 1;
     end
     
-    function drawRedBoundary()
+    function drawRedBoundary(obj)
       red1 = plot(...
-        polyshape([Arena.Width/2 Arena.Width/2+Arena.TapeWidth ...
-        Arena.Width/2+Arena.TapeWidth Arena.Width/2],...
-        [Arena.Height Arena.Height ...
-        Arena.Height/2+Arena.TapeWidth Arena.Height/2+Arena.TapeWidth]));
-      red1.FaceColor = Arena.ColorRed;
+        polyshape([obj.Width/2 obj.Width/2+obj.TapeWidth ...
+        obj.Width/2+obj.TapeWidth obj.Width/2],...
+        [obj.Height obj.Height ...
+        obj.Height/2+obj.TapeWidth obj.Height/2+obj.TapeWidth]));
+      red1.FaceColor = obj.ColorRed;
       red1.LineStyle = 'none';
       red1.FaceAlpha = 1;
       
       red2 = plot(...
-        polyshape([Arena.Width/2 Arena.Width Arena.Width Arena.Width/2],...
-        [Arena.Height/2 Arena.Height/2 Arena.Height/2+Arena.TapeWidth ...
-        Arena.Height/2+Arena.TapeWidth]));
-      red2.FaceColor = Arena.ColorRed;
+        polyshape([obj.Width/2 obj.Width obj.Width obj.Width/2],...
+        [obj.Height/2 obj.Height/2 obj.Height/2+obj.TapeWidth ...
+        obj.Height/2+obj.TapeWidth]));
+      red2.FaceColor = obj.ColorRed;
       red2.LineStyle = 'none';
       red2.FaceAlpha = 1;
     end
     
-    function drawGreenBoundary()
+    function drawGreenBoundary(obj)
       green1 = plot(...
-        polyshape([Arena.Width/2 Arena.Width Arena.Width Arena.Width/2],...
-        [Arena.Height/2 Arena.Height/2 Arena.Height/2-Arena.TapeWidth ...
-        Arena.Height/2-Arena.TapeWidth]));
-      green1.FaceColor = Arena.ColorGreen;
+        polyshape([obj.Width/2 obj.Width obj.Width obj.Width/2],...
+        [obj.Height/2 obj.Height/2 obj.Height/2-obj.TapeWidth ...
+        obj.Height/2-obj.TapeWidth]));
+      green1.FaceColor = obj.ColorGreen;
       green1.LineStyle = 'none';
       green1.FaceAlpha = 1;
       
       green2 = plot(...
-        polyshape([Arena.Width/2 Arena.Width/2+Arena.TapeWidth ...
-        Arena.Width/2+Arena.TapeWidth Arena.Width/2],...
-        [Arena.Height/2 Arena.Height/2 0 0]));
-      green2.FaceColor = Arena.ColorGreen;
+        polyshape([obj.Width/2 obj.Width/2+obj.TapeWidth ...
+        obj.Width/2+obj.TapeWidth obj.Width/2],...
+        [obj.Height/2 obj.Height/2 0 0]));
+      green2.FaceColor = obj.ColorGreen;
       green2.LineStyle = 'none';
       green2.FaceAlpha = 1;
     end
     
-    function drawYellowBoundary()
+    function drawYellowBoundary(obj)
       yellow1 = plot(...
-        polyshape([0 Arena.Width/2 Arena.Width/2 0],...
-        [Arena.Height/2 Arena.Height/2 Arena.Height/2-Arena.TapeWidth ...
-        Arena.Height/2-Arena.TapeWidth]));
-      yellow1.FaceColor = Arena.ColorYellow;
+        polyshape([0 obj.Width/2 obj.Width/2 0],...
+        [obj.Height/2 obj.Height/2 obj.Height/2-obj.TapeWidth ...
+        obj.Height/2-obj.TapeWidth]));
+      yellow1.FaceColor = obj.ColorYellow;
       yellow1.LineStyle = 'none';
       yellow1.FaceAlpha = 1;
       
       yellow2 = plot(...
-        polyshape([Arena.Width/2-Arena.TapeWidth Arena.Width/2 ...
-        Arena.Width/2 Arena.Width/2-Arena.TapeWidth],...
-        [Arena.Height/2 Arena.Height/2 0 0]));
-      yellow2.FaceColor = Arena.ColorYellow;
+        polyshape([obj.Width/2-obj.TapeWidth obj.Width/2 ...
+        obj.Width/2 obj.Width/2-obj.TapeWidth],...
+        [obj.Height/2 obj.Height/2 0 0]));
+      yellow2.FaceColor = obj.ColorYellow;
       yellow2.LineStyle = 'none';
       yellow2.FaceAlpha = 1;
     end
     
-    function drawOuterBoundary()
+    function drawOuterBoundary(obj)
       outer_boundary_l = plot(...
-        polyshape([0 Arena.TapeWidth Arena.TapeWidth 0], ...
-        [0 0 Arena.Height Arena.Height]));
+        polyshape([0 obj.TapeWidth obj.TapeWidth 0], ...
+        [0 0 obj.Height obj.Height]));
       outer_boundary_l.FaceColor = 'white';
       outer_boundary_l.LineStyle = 'none';
       outer_boundary_l.FaceAlpha = 1;
       
       outer_boundary_t = plot(...
-        polyshape([0 Arena.Width Arena.Width 0], ...
-        [Arena.Height Arena.Height Arena.Height-Arena.TapeWidth ...
-        Arena.Height-Arena.TapeWidth]));
+        polyshape([0 obj.Width obj.Width 0], ...
+        [obj.Height obj.Height obj.Height-obj.TapeWidth ...
+        obj.Height-obj.TapeWidth]));
       outer_boundary_t.FaceColor = 'white';
       outer_boundary_t.LineStyle = 'none';
       outer_boundary_t.FaceAlpha = 1;
       
       outer_boundary_r = plot(...
-        polyshape([Arena.Width Arena.Width Arena.Width-Arena.TapeWidth ...
-        Arena.Width-Arena.TapeWidth], [0 Arena.Height Arena.Height 0]));
+        polyshape([obj.Width obj.Width obj.Width-obj.TapeWidth ...
+        obj.Width-obj.TapeWidth], [0 obj.Height obj.Height 0]));
       outer_boundary_r.FaceColor = 'white';
       outer_boundary_r.LineStyle = 'none';
       outer_boundary_r.FaceAlpha = 1;
       
       outer_boundary_b = plot(...
-        polyshape([0 Arena.Width Arena.Width 0],...
-        [0 0 Arena.TapeWidth Arena.TapeWidth]));
+        polyshape([0 obj.Width obj.Width 0],...
+        [0 0 obj.TapeWidth obj.TapeWidth]));
       outer_boundary_b.FaceColor = 'white';
       outer_boundary_b.LineStyle = 'none';
       outer_boundary_b.FaceAlpha = 1;
     end
     
-    function inQ = isFullyInQuadrant(x,y,w,h,R,quad)
+    function inQ = isFullyInQuadrant(obj, x,y,w,h,R,quad)
       %ISFULLYINQUADRANT
       % Determines if the given rectangle is fully in the quadrant
       
       % Get the bounding points of the quadrant
       if strcmp(quad,'green')
-        x_min = Arena.Width/2;
-        x_max = Arena.Width;
+        x_min = obj.Width/2;
+        x_max = obj.Width;
         y_min = 0;
-        y_max = Arena.Height/2;
+        y_max = obj.Height/2;
       elseif strcmp(quad,'red')
-        x_min = Arena.Width/2;
-        x_max = Arena.Width;
-        y_min = Arena.Height/2;
-        y_max = Arena.Height;
+        x_min = obj.Width/2;
+        x_max = obj.Width;
+        y_min = obj.Height/2;
+        y_max = obj.Height;
       elseif strcmp(quad,'blue')
         x_min = 0;
-        x_max = Arena.Width/2;
-        y_min = Arena.Height/2;
-        y_max = Arena.Height;
+        x_max = obj.Width/2;
+        y_min = obj.Height/2;
+        y_max = obj.Height;
       elseif strcmp(quad,'yellow')
         x_min = 0;
-        x_max = Arena.Width/2;
+        x_max = obj.Width/2;
         y_min = 0;
-        y_max = Arena.Height/2;
+        y_max = obj.Height/2;
       end
       
       % Get the polyshape defined by arguments
@@ -206,7 +227,7 @@ classdef Arena < handle
       inQ = all(isinterior(bounds, x, y));
     end
     
-    function inB = inBounds(x, y, width, height, R)
+    function inB = inBounds(obj, x, y, width, height, R)
       %INBOUNDS
       % Check if the given rectangle is in the arena bounds delineated by
       % the white lines
@@ -215,8 +236,8 @@ classdef Arena < handle
       polyout = getPolyshape(x, y, width, height, R);
       
       % Get the polyshape representing the area in bounds
-      bounds = polyshape([0 Arena.Width Arena.Width 0],...
-        [0 0 Arena.Height Arena.Height]);
+      bounds = polyshape([0 obj.Width obj.Width 0],...
+        [0 0 obj.Height obj.Height]);
       
       % Get boundary vertices of the input shape
       [x,y] = boundary(polyout);
@@ -225,22 +246,7 @@ classdef Arena < handle
       % bounds
       inB = all(isinterior(bounds, x, y));
     end
-    
-  end
-  
-  methods
-    function obj = Arena()
-      %ARENA Construct an instance of this class
-      %       obj.Robot1 = Robot(2.5, 2.5, 0, 'yellow');
-      %       obj.Robot2 = Robot(7.5, 7.5, 45, 'red');
-      obj.Robot1 = Robot(Arena.Width/4, Arena.Height/4,...
-        rad2deg(atan(Arena.Height/Arena.Width)), 'yellow');
-      obj.Robot2 = Robot(3*(Arena.Width/4), 3*(Arena.Height/4),...
-        180+rad2deg(atan(Arena.Height/Arena.Width)), 'red');
-      obj.Blocks = Block.empty();
-      obj.initializeBlocks();
-    end
-    
+
     function initializeBlocks(obj)
       for i = 1:obj.NumBlocks
         if mod(i,4) == 0
@@ -273,7 +279,7 @@ classdef Arena < handle
       % Determine whether the given space already has something placed
       % there
       polyout = getPolyshape(x, y, width, height, R);
-      bounds = Arena.getArenaPolyshape();
+      bounds = obj.getArenaPolyshape();
       if overlaps(obj.Robot1.getPoly(), polyout)
         available = false;
       elseif overlaps(obj.Robot2.getPoly(), polyout)
@@ -292,10 +298,10 @@ classdef Arena < handle
       % Get the input rectangle
       polyout = getPolyshape(x,y,width,height,R);
       
-      % Get the bounds of the 
+      % Get the bounds of the arena inside the white lines
       tw = obj.TapeWidth;
       w = obj.Width;
-      h = obj.Height;
+      h = obj.Height;      
       bounds = polyshape([tw w-tw w-tw tw], [tw tw h-tw h-tw]);
       
       % Get the boundary vertices of the input rectangle
@@ -308,25 +314,25 @@ classdef Arena < handle
     
     function [x,y] = getRandomQuadrantPoint(obj, quad)
       if strcmp(quad,'green')
-        x_min = Arena.Width/2;
-        x_max = Arena.Width;
+        x_min = obj.Width/2;
+        x_max = obj.Width;
         y_min = 0;
-        y_max = Arena.Height/2;
+        y_max = obj.Height/2;
       elseif strcmp(quad,'red')
-        x_min = Arena.Width/2;
-        x_max = Arena.Width;
-        y_min = Arena.Height/2;
-        y_max = Arena.Height;
+        x_min = obj.Width/2;
+        x_max = obj.Width;
+        y_min = obj.Height/2;
+        y_max = obj.Height;
       elseif strcmp(quad,'blue')
         x_min = 0;
-        x_max = Arena.Width/2;
-        y_min = Arena.Height/2;
-        y_max = Arena.Height;
+        x_max = obj.Width/2;
+        y_min = obj.Height/2;
+        y_max = obj.Height;
       elseif strcmp(quad,'yellow')
         x_min = 0;
-        x_max = Arena.Width/2;
+        x_max = obj.Width/2;
         y_min = 0;
-        y_max = Arena.Height/2;
+        y_max = obj.Height/2;
       end
       
       x = (x_max-x_min).*rand(1,1) + x_min;
@@ -399,17 +405,17 @@ classdef Arena < handle
       hold off;
       
       % Draw background
-      Arena.drawBackground();
+      obj.drawBackground();
       
       % Hold all next plots on the graph
       hold on
       
       % Draw boundarys
-      Arena.drawRedBoundary();
-      Arena.drawGreenBoundary();
-      Arena.drawBlueBoundary();
-      Arena.drawYellowBoundary();
-      Arena.drawOuterBoundary();
+      obj.drawRedBoundary();
+      obj.drawGreenBoundary();
+      obj.drawBlueBoundary();
+      obj.drawYellowBoundary();
+      obj.drawOuterBoundary();
       
       % Draw all the blocks
       for i = 1:length(obj.Blocks)
@@ -425,6 +431,9 @@ classdef Arena < handle
       
       % Set the aspect ratio of the plot box
       pbaspect([1 1 1]);
+      
+      % Center the plot box in the middle of the figure window
+      set(gca, 'Position', [0.05 0.05 0.9 0.9])
       
       % Turn off axis labels
       axis off;

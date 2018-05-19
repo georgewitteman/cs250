@@ -1,32 +1,6 @@
 classdef Robot < handle
   %ROBOT A representation of a robot
   
-  properties (Constant)
-    Width  = 11/12 % feet
-    Height = 10/12 % feet
-    Speed  = 1 % feet/second
-    
-    % The speed that the robot is able to rotate at
-    RotationSpeed = 35 % degrees/second
-    
-    % Min and max angles (in degrees) that the robot will spin after it's
-    % hit another robot or a wall
-    MinSpinAngle = 90 % degrees
-    MaxSpinAngle = 180 % degrees
-    
-    % Time that the robot should back up after it's hit a wall
-    BackupTime = 1 % second
-    
-    % When this time has been reached the robot will always stop if it's
-    % fully in it's home quadrant
-    HomeStopTime = 3 * 60 % seconds
-    
-    % Camera parameters
-    CameraDistance = 5 % feet
-    CameraFOV = 135 % degrees
-    CameraOn = true % camera on/off flag
-  end
-  
   properties
     % Position
     X % horizontal center (feet)
@@ -56,23 +30,54 @@ classdef Robot < handle
     
     % Camera for this robot
     Camera
+    
+    Width
+    Height
+    Speed
+    
+    % The speed that the robot is able to rotate at
+    RotationSpeed
+    
+    % Min and max angles (in degrees) that the robot will spin after it's
+    % hit another robot or a wall
+    MinSpinAngle
+    MaxSpinAngle
+    
+    % Time that the robot should back up after it's hit a wall
+    BackupTime
+    
+    % When this time has been reached the robot will always stop if it's
+    % fully in it's home quadrant
+    HomeStopTime
+    
+    % Camera parameters
+    CameraDistance
+    CameraFOV
+    CameraOn
   end
   
   methods(Static)
     function dir = pickDir()
       %PICKDIR Pick a direction for the robot to spin in (-1:left, 1:right)
       dir = 1;
-      %       if randMinMax(-1,1) >= 0
-      %         dir = 1;
-      %       else
-      %         dir = -1;
-      %       end
     end
   end
   
   methods
-    function obj = Robot(x, y, angle, color)
+    function obj = Robot(simParams, x, y, angle, color)
       %ROBOT Construct an instance of this class
+      obj.Width = simParams.RobotWidth;
+      obj.Height = simParams.RobotHeight;
+      obj.Speed = simParams.RobotSpeed;
+      obj.RotationSpeed = simParams.RotationSpeed;
+      obj.MinSpinAngle = simParams.MinSpinAngle;
+      obj.MaxSpinAngle = simParams.MaxSpinAngle;
+      obj.BackupTime = simParams.BackupTime;
+      obj.HomeStopTime = simParams.HomeStopTime;
+      obj.CameraDistance = simParams.CameraDistance;
+      obj.CameraFOV = simParams.CameraFOV;
+      obj.CameraOn = simParams.CameraOn;
+      
       obj.X = x;
       obj.Y = y;
       obj.R = angle;
@@ -83,7 +88,9 @@ classdef Robot < handle
       obj.BlockCount = 0;
       obj.SpinDir = -1;
       obj.RunTime = 0;
-      obj.Camera = Camera(obj.CameraDistance, obj.CameraFOV, color);
+      
+      obj.Camera = Camera(obj.CameraDistance, obj.CameraFOV, color,...
+        obj.CameraOn);
     end
     
     function setPosition(obj, x, y)
@@ -235,7 +242,7 @@ classdef Robot < handle
         [x_cam, y_cam] = obj.getCameraPosition();
         offCenter = obj.Camera.getAngleOffCenter(x_cam, y_cam, obj.R,...
           closestBlock.X, closestBlock.Y);
-
+        
         % Steer towards the block
         obj.rotate(obj.RotationSpeed * deltaT *...
           (sqrt(abs(offCenter)) / sqrt(obj.Camera.ViewAngle/2)) *...

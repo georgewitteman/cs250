@@ -2,22 +2,28 @@ classdef Camera < handle
   %CAMERA
   
   properties (Constant)
-    CameraOn = true
+    Debug = false
   end
   
   properties
     MaxDistance
     ViewAngle
     Color
+    CameraOn
   end
   
   methods(Static)
     function ang = getAngleOffCenter(cam_x, cam_y, cam_R, obj_x, obj_y)
+      %GETANGLEOFFCENTER
+      % Calculate the angle of the object relative to the center
+      % axis of the camera.
       cam_x2 = cos(deg2rad(cam_R)) + cam_x;
       cam_y2 = sin(deg2rad(cam_R)) + cam_y;
-%       
-%       plot([cam_x cam_x2], [cam_y cam_y2]);
-%       plot([cam_x obj_x], [cam_y obj_y]);
+      
+      if Camera.Debug
+        plot([cam_x cam_x2], [cam_y cam_y2]);
+        plot([cam_x obj_x], [cam_y obj_y]);
+      end
       
       % Find the angle between the two lines created by the points
       ang = rad2deg(atan2(obj_y-cam_y, obj_x-cam_x) - ...
@@ -31,11 +37,12 @@ classdef Camera < handle
   end
   
   methods
-    function obj = Camera(maxDistance,viewAngle,color)
+    function obj = Camera(maxDistance,viewAngle,color,cameraOn)
       %CAMERA Construct an instance of this class
       obj.MaxDistance = maxDistance;
       obj.ViewAngle = viewAngle;
       obj.Color = color;
+      obj.CameraOn = cameraOn;
     end
     
     function pgon = getPolyshape(obj, cam_x, cam_y, cam_R)

@@ -4,27 +4,57 @@
 % Final Project
 % Spring, 2018
 simulation_length = 5 * 60; % seconds
-deltaT = 1/60; % seconds (frames per second)
+deltaT = 1/3; % seconds (frames per second)
 t = 0:deltaT:simulation_length;
 
 % Flag to determine if we want to draw the arena
-drawArena = true;
+drawArena = false;
 
-arena = Arena();
+% Simulation Parameters
+simParams = SimulationParameters();
+simParams.ArenaWidth = 10; % ft
+simParams.ArenaHeight = 10; % ft
+simParams.NumBlocks = 16;
+simParams.PointsHomeBlock = 3;
+simParams.PointsOtherBlock = -1;
+simParams.RobotWidth = 11/12; % ft
+simParams.RobotHeight = 10/12; % ft
+simParams.RobotSpeed = 1; % ft/sec
+simParams.RotationSpeed = 35; % degrees/sec
+simParams.MinSpinAngle = 90; % degrees
+simParams.MaxSpinAngle = 180; % degrees
+simParams.BackupTime = 1; % sec
+simParams.HomeStopTime = 3 * 60; % seconds
+simParams.CameraDistance = 3; % ft
+simParams.CameraFOV = 60; % degrees
+simParams.CameraOn = true;
+simParams.TapeWidth = 2/12; % ft
 
+arena = Arena(simParams);
+
+% Set up the plot
+f = figure;
+
+% Set the figure window title
+f.Name = 'Simulation of the Robotics Competition';
+f.NumberTitle = 'off'; % No 'Figure 1' in the title bar
+
+% Turn off the figure window menu and toolbar
+f.MenuBar = 'none';
+f.ToolBar = 'none';
+
+% Set the background of the figures to be gray
+set(f, 'color', [210/255 180/255 140/255]);
+
+% Make the figure window the given size in the bottom left of the display
+set(f, 'InnerPosition', [0, 0, 600, 600]);
+
+% Re-center the figure window
+movegui(f, 'center');
+
+arena.draw();
+  
 if drawArena
-  % Set up the plot
-  f = figure;
-
-  % Set the background of the figures to be gray
-  set(f, 'color', [210/255 180/255 140/255]);
-
-  % Make the figure window the given size in the bottom left of the display
-  set(f, 'InnerPosition', [0, 0, 600, 600]);
-
-  % Re-center the figure window
-  movegui(f, 'center');
-
   % Initialize VideoWriter to save frames to
   v = VideoWriter('save.mp4', 'MPEG-4');
   v.FrameRate = 1/deltaT;
@@ -48,7 +78,7 @@ for i = 1:length(t)
   if drawArena
     % Get current frame;
     frame = getframe;
-
+    
     % Save the frame in the save video
     writeVideo(v,frame);
   end
@@ -58,6 +88,11 @@ if drawArena
   % Close video file since we're not updating it anymore
   close(v);
 end
+
+% Always draw the last frame
+arena.draw();
+title(strcat('Simulation of Robotics Competition at t=',...
+      num2str(t(i), '%.2f')));
 
 % Determine who won the simulation
 disp(strcat(arena.Robot1.Color, ' points:'));
