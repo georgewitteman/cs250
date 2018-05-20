@@ -23,12 +23,12 @@ simParams.RobotHeight = 10/12; % ft
 simParams.RobotSpeed = 1; % ft/sec
 simParams.RotationSpeed = 35; % degrees/sec
 simParams.MinSpinAngle = 90; % degrees
-simParams.MaxSpinAngle = 90; % degrees
+simParams.MaxSpinAngle = 180; % degrees
 simParams.BackupTime = 1; % sec
 simParams.HomeStopTime = 3 * 60; % seconds
 simParams.CameraDistance = 3; % ft
 simParams.CameraFOV = 115; % degrees
-simParams.CameraOn = false;
+simParams.CameraOn = true;
 simParams.TapeWidth = 2/12; % ft
 
 arena = Arena(simParams);
