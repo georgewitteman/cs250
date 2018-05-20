@@ -131,10 +131,40 @@ end
 The following section describes some different hypothesis that I was able to test using the model. 
 
 \subsection{Camera Effectiveness}
-\textit{Hypothesis}: The addition of the camera allows robots to collect more blocks in a shorter amount of time. In general, the addition of the camera will increase the score for the robot as opposed to roaming randomly.
+\textit{Hypothesis:} The addition of the camera allows robots to collect more blocks in a shorter amount of time. In general, the addition of the camera will increase the score for the robot as opposed to roaming randomly.
 
 To test this hypothesis I ran a 5 simulations of the competition with the camera and without the camera and averaged the resulting scores for each robot. The average score across both robots in the simulations without the camera is 6, and the average score across both robots in the simulations \textit{with} the camera is 10. That means that robots with the camera scored the maximum amount of points possible ($(3 \times 10) - (2 \times 1) = 10$) in each round. This shows that there is a significant advantage to having the camera. 
 
+\begin{figure}[hbt]
+  \center
+  \includegraphics[width=0.45\textwidth]{images/arena-2.png}
+  \caption{A screenshot at $t=0$ of the arena where both camera's are configured with a maximum view angle of 60\degree\ and maximum viewing distance of 3 ft.}
+  \label{fig:arena-2}
+\end{figure}
+
 \subsection{Camera Field of View}
+\textit{Hypothesis:} Because it is able to see more blocks on the arena, a camera with a wider and/or longer field of view will get a higher average score than one with a smaller and/or shorter field of view.
+
+To test this hypothesis I ran 5 simulations for each of the following configurations: a 115\degree\ 3 ft. field of view, a 90\degree\ 3 ft. field of view, a 60\degree\ 3 ft. field of view, and a 60\degree\ 2 ft. field of view. The average score for each robot for each configuration, as well as the average score without the camera, is as follows.
+\begin{itemize}
+  \item 115\degree\ 3 ft. FOV: $(10+10+10+10+10+10+10+10+10+10)/10 = \textbf{10}$
+  \item 90\degree\ 3 ft. FOV: $(10+9+7+10+10+10+4+10+10+10)/10 = \textbf{9}$
+  \item 60\degree\ 3 ft. FOV: $(7+10+10+6+10+7+7+7+7+10)/10 = \textbf{8.1}$
+  \item 60\degree\ 2 ft. FOV: $(7+10+7-2+9+3+4-2+10+4)/10 = \textbf{5}$
+  \item No camera: $(10+9+7-2+1+7+4+9+9+7)/10 = \textbf{6}$
+\end{itemize}
+
+As you can see, the camera had a significant impact at higher angles and distances as expected. However, when the camera got down to 60\degree\ 2 ft., it actually performed worse than the runs without any camera.
+
+One explanation for why the camera with this configuration did not perform better than the robot without the camera, is that the camera's field of view is almost entirely just directly in front of the robot. That is, if the robot was in a position where the block could be seen by the camera, the robot only had to drive forward to collect the block anyway. This can be seen in Figure \ref{fig:arena-2}.
+
+Therefore, this evidence shows that the hypothesis is correct, that robots with a larger field of view are more likely to gain a higher score.
+
+\subsection{Spin Angle}
+\textit{Hypothesis:} The larger the range of spin angles that the robot is able to spin after hitting an obstacle, the more paths that it will be able to take, and the better score it would get. 
+
+This hypothesis is not supported by evidence. I turned the camera off and ran 5 simulations each with the following configurations, shown in tuples representing the minimum and maximum spin angle: (45\degree, 180\degree), (0\degree, 180\degree), (0\degree, 90\degree), and (90\degree, 180\degree). The corresponding average scores for these configurations is 4.5, 4.1, 4.6, and 5 respectively. Since all of these values are within the range of 4 to 5 points, it doesn't seem that there is any advantage to having the robots spin with anything other than 90 to 180 degrees.
+
+One type of configuration that I did not test was where the robot always spun at a specific angle (their min and max spin angle is equal). Since I had to use a low value for $dt$ in order to run the simulations in a reasonable amount of time, the robots were not able to spin at exactly the angle that they were supposed to. This would defeat the purpose of testing the spin angle.
 
 \end{document}

@@ -7,8 +7,9 @@ simulation_length = 5 * 60; % seconds
 deltaT = 1/3; % seconds (frames per second)
 t = 0:deltaT:simulation_length;
 
-% Flag to determine if we want to draw the arena
-drawArena = false;
+% Flag to determine if we want to draw the arena. It can be much faster to
+% run a simulation if we don't draw every frame
+drawArena = true;
 
 % Simulation Parameters
 simParams = SimulationParameters();
@@ -22,12 +23,12 @@ simParams.RobotHeight = 10/12; % ft
 simParams.RobotSpeed = 1; % ft/sec
 simParams.RotationSpeed = 35; % degrees/sec
 simParams.MinSpinAngle = 90; % degrees
-simParams.MaxSpinAngle = 180; % degrees
+simParams.MaxSpinAngle = 90; % degrees
 simParams.BackupTime = 1; % sec
 simParams.HomeStopTime = 3 * 60; % seconds
 simParams.CameraDistance = 3; % ft
-simParams.CameraFOV = 60; % degrees
-simParams.CameraOn = true;
+simParams.CameraFOV = 115; % degrees
+simParams.CameraOn = false;
 simParams.TapeWidth = 2/12; % ft
 
 arena = Arena(simParams);
@@ -52,8 +53,11 @@ set(f, 'InnerPosition', [0, 0, 600, 600]);
 % Re-center the figure window
 movegui(f, 'center');
 
+% Draw the initial frame at t=0
 arena.draw();
-  
+setTitle(0);
+drawnow;
+
 if drawArena
   % Initialize VideoWriter to save frames to
   v = VideoWriter('save.mp4', 'MPEG-4');
@@ -66,9 +70,8 @@ for i = 1:length(t)
   
   if drawArena
     % Display this frame
-    draw(arena);
-    title(strcat('Simulation of Robotics Competition at t=',...
-      num2str(t(i), '%.2f')));
+    arena.draw();
+    setTitle(t(i));
     drawnow
   end
   
@@ -91,8 +94,8 @@ end
 
 % Always draw the last frame
 arena.draw();
-title(strcat('Simulation of Robotics Competition at t=',...
-      num2str(t(i), '%.2f')));
+setTitle(simulation_length);
+drawnow;
 
 % Determine who won the simulation
 disp(strcat(arena.Robot1.Color, ' points:'));
@@ -107,4 +110,9 @@ elseif arena.countPoints(arena.Robot2) > arena.countPoints(arena.Robot1)
   disp(strcat(arena.Robot2.Color, ' WINS!'));
 else
   disp('TIE!');
+end
+
+function setTitle(t)
+title(strcat('Simulation of Robotics Competition at t=',...
+  num2str(t, '%.2f')));
 end
