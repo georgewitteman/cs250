@@ -4,7 +4,7 @@
 % Final Project
 % Spring, 2018
 simulation_length = 5 * 60; % seconds
-deltaT = 1/3; % seconds (frames per second)
+deltaT = 1; % seconds (frames per second)
 t = 0:deltaT:simulation_length;
 
 % Flag to determine if we want to draw the arena. It can be much faster to
