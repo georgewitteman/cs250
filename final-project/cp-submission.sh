@@ -1,4 +1,5 @@
 mkdir -p ./submission
+cp Arena.m ./submission/Arena.m
 cp Block.m ./submission/Block.m
 cp Camera.m ./submission/Camera.m
 cp feetToInches.m ./submission/feetToInches.m
