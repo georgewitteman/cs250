@@ -11,3 +11,5 @@ cp Robot.m ./submission/Robot.m
 cp SimulationParameters.m ./submission/SimulationParameters.m
 cp squareVertices.m ./submission/squareVertices.m
 cp write-up.pdf ./submission/gewitteman-writeup.pdf
+cp getPolyshape.m ./submission/getPolyshape.m
+
